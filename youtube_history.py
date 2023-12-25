@@ -121,10 +121,11 @@ class Analysis:
     funny : Series
         The 'funniest' video as determined by funny_counts
     """
-    def __init__(self, takeout=None, outpath='data', delay=0):
+    def __init__(self, takeout=None, outpath='data', delay=0, browser='chrome'):
         self.takeout = Path(takeout).expanduser() if takeout else None
         self.path = Path(outpath)
         self.delay = delay
+        self.browser = browser
         self.raw = os.path.join(self.path, 'raw')  # TODO use Path
         self.ran = os.path.join(self.path, 'ran')  # TODO use Path
         self.df = None
@@ -182,13 +183,13 @@ class Analysis:
             files = os.path.join(self.raw, '%(autonumber)s')
             if not os.path.exists(self.raw):
                 os.makedirs(self.raw)
-            template = ('yt-dlp --cookies-from-browser chrome '
+            template = ('yt-dlp --cookies-from-browser {} '
                         '-o "{}" --sleep-interval {} '
                         '--skip-download --write-info-json -i '
                         'https://www.youtube.com/feed/history ')
-            fake = template.format(files, self.delay)
+            fake = template.format(self.browser, files, self.delay)
             print(f'Executing yt-dlp command:\n\n{fake}\n')
-            cmd = template.format(files, self.delay)
+            cmd = template.format(self.browser, files, self.delay)
             p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, shell=True)
             while True:
                 line = p.stdout.readline().decode("utf-8").strip()
@@ -364,9 +365,11 @@ if __name__ == '__main__':
                         help="Path to empty directory for data storage.")
     parser.add_argument('-d', '--delay', default=0,
                         help='Time to wait between requests. May help avoid 2FA.')
+    parser.add_argument('-b', '--browser', default='chrome',
+                        help="Browser to import youtube cookies from.")
     parser.add_argument('-t', '--takeout',
                         help='Path to an unzipped Takeout folder downloaded from https://takeout.google.com/')
     args = parser.parse_args()
-    analysis = Analysis(args.takeout, args.out, float(args.delay))
+    analysis = Analysis(args.takeout, args.out, float(args.delay), args.browser)
     analysis.run()
     launch_web()
