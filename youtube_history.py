@@ -31,7 +31,7 @@ from grapher import Grapher, flatten_without_nones
 
 DEPRECATION_NOTE = """
 This method of downloading data is deprecated. 
-It uses youtube-dl to login to your Google account.
+It uses yt-dlp to login to your Google account.
 This is error-prone, as Google may think you are a bot.
 Instead, you should go to https://takeout.google.com/,
 and follow directions there to download your "YouTube and YouTube Music" data.
@@ -187,7 +187,7 @@ class Analysis:
                         '--skip-download --write-info-json -i '
                         'https://www.youtube.com/feed/history ')
             fake = template.format(files, self.delay)
-            print(f'Executing youtube-dl command:\n\n{fake}\n')
+            print(f'Executing yt-dlp command:\n\n{fake}\n')
             cmd = template.format(files, self.delay)
             p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, shell=True)
             while True:
