@@ -24,7 +24,7 @@ from wordcloud import WordCloud
 from flask import Flask
 from flask import render_template
 from bs4 import BeautifulSoup
-from emoji import emoji_lis
+from emoji import emoji_list
 
 from grapher import Grapher, flatten_without_nones
 
@@ -122,7 +122,7 @@ class Analysis:
         The 'funniest' video as determined by funny_counts
     """
     def __init__(self, takeout=None, outpath='data', delay=0):
-        self.takeout = Path(takeout).expanduser()
+        self.takeout = Path(takeout).expanduser() if takeout else None
         self.path = Path(outpath)
         self.delay = delay
         self.raw = os.path.join(self.path, 'raw')  # TODO use Path
@@ -163,7 +163,7 @@ class Analysis:
         url_path.write_text('\n'.join(videos))
         print(f'Urls extracted. Downloading data for {len(videos)} videos now.')
         output = os.path.join(self.raw, '%(autonumber)s')
-        cmd = f'youtube-dl -o "{output}" --skip-download --write-info-json -i -a {url_path}'
+        cmd = f'yt-dlp -o "{output}" --skip-download --write-info-json -i -a {url_path}'
         p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, shell=True)
         line = True
         while line:
@@ -179,18 +179,16 @@ class Analysis:
         successful_login = False
         while not successful_login:
             successful_login = True
-            user = input('Google username: ')
-            pw = getpass.getpass('Google password: ')
             files = os.path.join(self.raw, '%(autonumber)s')
             if not os.path.exists(self.raw):
                 os.makedirs(self.raw)
-            template = ('youtube-dl -u "{}" -p "{}" '
+            template = ('yt-dlp --cookies-from-browser chrome '
                         '-o "{}" --sleep-interval {} '
                         '--skip-download --write-info-json -i '
                         'https://www.youtube.com/feed/history ')
-            fake = template.format(user, '[$PASSWORD]', files, self.delay)
+            fake = template.format(files, self.delay)
             print(f'Executing youtube-dl command:\n\n{fake}\n')
-            cmd = template.format(user, pw, files, self.delay)
+            cmd = template.format(files, self.delay)
             p = sp.Popen(cmd, stdout=sp.PIPE, stderr=sp.STDOUT, shell=True)
             while True:
                 line = p.stdout.readline().decode("utf-8").strip()
